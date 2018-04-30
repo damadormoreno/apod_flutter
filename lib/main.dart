@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'models/APODImage.dart';
+import 'package:intl/intl.dart';
 
 void main() {
   runApp(
@@ -70,7 +71,15 @@ return list;
 }
 
 Future<List<APODImage>> getApod() async {
-  final String url = 'https://api.nasa.gov/planetary/apod?api_key=ND6PCgDSOtfIgOvoiLoa7SHTvd4gmX6BeDfHCAzG&&start_date=2018-04-01&end_date=2018-04-08&concept_tags=true';
+  var now = new DateTime.now();
+  var oneWeekLater = now.subtract(Duration(days: 7));
+  var formatter = new DateFormat('yyyy-MM-dd');
+  String nowString = formatter.format(now);
+  String oneWeekLaterString = formatter.format(oneWeekLater);
+
+  final String url = 'https://api.nasa.gov/planetary/apod?'
+      'api_key=ND6PCgDSOtfIgOvoiLoa7SHTvd4gmX6BeDfHCAzG&&'
+      'start_date=${oneWeekLaterString}&end_date=${nowString}&concept_tags=true';
   var httpClient = new HttpClient();
   try {
     // Make the call
@@ -102,21 +111,24 @@ List<Widget> createApodCardItem(List<APODImage> apods, BuildContext context) {
       // Image URL
       var imageURL = apodImage.url;
       // List item created with an image of the poster
-      var listItem = new GridTile(
-          footer: new GridTileBar(
-            backgroundColor: Colors.black45,
-            title: new Text(apodImage.title),
-          ),
-          child: new GestureDetector(
-            onTap: () {
-              Scaffold.of(context).showSnackBar(new SnackBar(
-                content: new Text("Go to detail"),
-              ));
-            },
-            child: new Image.network(imageURL, fit: BoxFit.cover),
-          )
-      );
+      if (apodImage.mediaType == "image") {
+        var listItem = new GridTile(
+            footer: new GridTileBar(
+              backgroundColor: Colors.black45,
+              title: new Text(apodImage.title),
+            ),
+            child: new GestureDetector(
+              onTap: () {
+                Scaffold.of(context).showSnackBar(new SnackBar(
+                  content: new Text("Go to detail"),
+                ));
+              },
+              child: new Image.network(imageURL, fit: BoxFit.cover),
+            )
+        );
+
       listElementWidgetList.add(listItem);
+      }
     }
   }
   return listElementWidgetList;
